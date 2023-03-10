@@ -33,8 +33,30 @@ class SwingingSticksExtension(omni.ext.IExt):
         self.stage = omni.usd.get_context().get_stage()
         defaultPrimPath = str(self.stage.GetDefaultPrim().GetPath())
 
+        # set actor 
+        actorPath = defaultPrimPath + "/swing/swing/stick0"
+        self.actorPrim = self.stage.GetPrimAtPath(actorPath)
+        self.actorRigidBodyAPI = UsdPhysics.RigidBodyAPI(self.actorPrim)
+
+
+        # Force
+        forcePrimPath = defaultPrimPath + "/swing/swing" + "/swingForce"
+        forcePrim = self.stage.GetPrimAtPath(forcePrimPath)
+
+        if forcePrim.IsValid(): # delete existing one
+            omni.kit.commands.execute("DeletePrims", paths=[forcePrimPath])
+            
+        forceXform = UsdGeom.Xform.Define(self.stage, forcePrimPath)
+        forceXform.AddTranslateOp().Set(Gf.Vec3f(0.0, 0.0, -1.0))
+        self.forceApi = PhysxSchema.PhysxForceAPI.Apply(forceXform.GetPrim())    
+
         # Trigger
         triggerPath = defaultPrimPath + "/boxTrigger"
+        triggerPrim = self.stage.GetPrimAtPath(triggerPath)
+
+        if triggerPrim.IsValid(): # delete existing one
+            omni.kit.commands.execute("DeletePrims", paths=[triggerPath])
+
         triggerBox = UsdGeom.Cube.Define(self.stage, triggerPath)
         triggerBox.CreateSizeAttr(100)
         triggerBox.AddTranslateOp().Set(Gf.Vec3f(0.0, 0.0, 0.0))
@@ -49,6 +71,7 @@ class SwingingSticksExtension(omni.ext.IExt):
         # timeline
         stream = omni.timeline.get_timeline_interface().get_timeline_event_stream()
         self._timeline_sub = stream.create_subscription_to_pop(self._on_timeline_event)
+
 
     def _on_timeline_event(self, event):
         if event.type == int(omni.timeline.TimelineEventType.PLAY):
@@ -74,11 +97,24 @@ class SwingingSticksExtension(omni.ext.IExt):
         self.triggerCollisions = triggerColliders
         
         if len(triggerColliders) > 0:
-            print("trigger!")
+
             for collision in triggerColliders:
                 usdGeom = UsdGeom.Mesh.Get(self.stage, collision)
                 color = Vt.Vec3fArray([Gf.Vec3f(180.0 / 255.0, 16.0 / 255.0, 0.0)])
-                usdGeom.GetDisplayColorAttr().Set(color)            
+                usdGeom.GetDisplayColorAttr().Set(color)  
+
+                if "stick0" in collision.pathString:
+                    angularVelocityAttribute = self.actorRigidBodyAPI.GetAngularVelocityAttr()   
+                    print("trigger len velocity", len(triggerColliders), angularVelocityAttribute.Get()) 
+
+                    xSpeed = angularVelocityAttribute.Get()[0]
+                    if abs(xSpeed) > 70:
+                        self.forceApi.GetForceEnabledAttr().Set(False)
+                    else:
+                        self.forceApi.GetForceEnabledAttr().Set(True)
+                        forceAttr = self.forceApi.GetForceAttr()
+                        xForce = 10000 if xSpeed > 0 else -10000
+                        forceAttr.Set(value=Gf.Vec3f(xForce, xForce, xForce))      
                
         for collision in list_difference:
             usdGeom = UsdGeom.Mesh.Get(self.stage, collision)

@@ -40,7 +40,7 @@ class SwingingSticksExtension(omni.ext.IExt):
 
 
         # Force
-        forcePrimPath = defaultPrimPath + "/swing/swing" + "/swingForce"
+        forcePrimPath = defaultPrimPath + "/swing/swing/stick0" + "/swingForce"
         forcePrim = self.stage.GetPrimAtPath(forcePrimPath)
 
         if forcePrim.IsValid(): # delete existing one
@@ -108,13 +108,13 @@ class SwingingSticksExtension(omni.ext.IExt):
                     print("trigger len velocity", len(triggerColliders), angularVelocityAttribute.Get()) 
 
                     xSpeed = angularVelocityAttribute.Get()[0]
-                    if abs(xSpeed) > 70:
+                    if abs(xSpeed) > 90:
                         self.forceApi.GetForceEnabledAttr().Set(False)
                     else:
                         self.forceApi.GetForceEnabledAttr().Set(True)
                         forceAttr = self.forceApi.GetForceAttr()
-                        xForce = 10000 if xSpeed > 0 else -10000
-                        forceAttr.Set(value=Gf.Vec3f(xForce, xForce, xForce))      
+                        xForce = -1000 if xSpeed > 0 else 1000
+                        forceAttr.Set(value=Gf.Vec3f(xForce, 0, 0))      
                
         for collision in list_difference:
             usdGeom = UsdGeom.Mesh.Get(self.stage, collision)

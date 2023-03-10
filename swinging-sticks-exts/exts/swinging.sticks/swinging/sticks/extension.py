@@ -84,11 +84,11 @@ class SwingingSticksExtension(omni.ext.IExt):
         
 
     def _on_update(self, e):
-        print("updating......")
+        # print("updating......")
         dt = e.payload["dt"]
         
-        box_color = 0xffffff00
-        get_debug_draw_interface().draw_box(carb.Float3(0.0, 0.0, 0.0), carb.Float4(0.0, 0.0, 0.0, 1.0), carb.Float3(100.0, 100.0, 100.0), box_color, 3.0)
+        # box_color = 0xffffff00
+        # get_debug_draw_interface().draw_box(carb.Float3(0.0, 0.0, 0.0), carb.Float4(0.0, 0.0, 0.0, 1.0), carb.Float3(100.0, 100.0, 100.0), box_color, 3.0)
        
         
         triggerColliders = self.triggerStateAPI.GetTriggeredCollisionsRel().GetTargets()
@@ -99,16 +99,16 @@ class SwingingSticksExtension(omni.ext.IExt):
         if len(triggerColliders) > 0:
 
             for collision in triggerColliders:
-                usdGeom = UsdGeom.Mesh.Get(self.stage, collision)
-                color = Vt.Vec3fArray([Gf.Vec3f(180.0 / 255.0, 16.0 / 255.0, 0.0)])
-                usdGeom.GetDisplayColorAttr().Set(color)  
+                # usdGeom = UsdGeom.Mesh.Get(self.stage, collision)
+                # color = Vt.Vec3fArray([Gf.Vec3f(180.0 / 255.0, 16.0 / 255.0, 0.0)])
+                # usdGeom.GetDisplayColorAttr().Set(color)  
 
                 if "stick0" in collision.pathString:
                     angularVelocityAttribute = self.actorRigidBodyAPI.GetAngularVelocityAttr()   
-                    print("trigger len velocity", len(triggerColliders), angularVelocityAttribute.Get()) 
+                    # print("trigger len velocity", len(triggerColliders), angularVelocityAttribute.Get()) 
 
                     xSpeed = angularVelocityAttribute.Get()[0]
-                    if abs(xSpeed) > 90:
+                    if abs(xSpeed) > 92:
                         self.forceApi.GetForceEnabledAttr().Set(False)
                     else:
                         self.forceApi.GetForceEnabledAttr().Set(True)
@@ -116,10 +116,10 @@ class SwingingSticksExtension(omni.ext.IExt):
                         xForce = -1000 if xSpeed > 0 else 1000
                         forceAttr.Set(value=Gf.Vec3f(xForce, 0, 0))      
                
-        for collision in list_difference:
-            usdGeom = UsdGeom.Mesh.Get(self.stage, collision)
-            color = Vt.Vec3fArray([Gf.Vec3f(71.0 / 255.0, 165.0 / 255.0, 1.0)])
-            usdGeom.GetDisplayColorAttr().Set(color)
+        # for collision in list_difference:
+        #     usdGeom = UsdGeom.Mesh.Get(self.stage, collision)
+        #     color = Vt.Vec3fArray([Gf.Vec3f(71.0 / 255.0, 165.0 / 255.0, 1.0)])
+        #     usdGeom.GetDisplayColorAttr().Set(color)
       
 
     def on_shutdown(self):
